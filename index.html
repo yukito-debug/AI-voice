@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI voice</title>
+
+<style>
+
+* {
+
+  box-sizing: border-box;
+
+}
+
+body {
+
+  margin: 0;
+
+  padding: 25px;
+
+  background: #101116;
+
+  color: white;
+
+  font-family: Arial, sans-serif;
+
+}
+
+header {
+
+  text-align: center;
+
+  padding: 25px 0;
+
+}
+
+h1 {
+
+  font-size: 36px;
+
+  color: #69a5ff;
+
+}
+
+.card {
+
+  background: #1c202b;
+
+  padding: 22px;
+
+  border-radius: 18px;
+
+  margin: 20px 0;
+
+}
+
+textarea {
+
+  width: 100%;
+
+  height: 120px;
+
+  padding: 15px;
+
+  border-radius: 12px;
+
+  background: #101116;
+
+  color: white;
+
+  border: 1px solid #444;
+
+  font-size: 16px;
+
+}
+
+button {
+
+  width: 100%;
+
+  padding: 16px;
+
+  margin-top: 12px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #428cff;
+
+  color: white;
+
+  font-size: 17px;
+
+  font-weight: bold;
+
+}
+
+button:disabled {
+
+  opacity: .5;
+
+}
+
+input {
+
+  margin-top: 15px;
+
+  color: white;
+
+}
+
+.status {
+
+  color: #8bbaff;
+
+  text-align: center;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+  <h1>🎙️ AI voice</h1>
+
+  <p>Sua inteligência artificial de voz</p>
+
+</header>
+
+<div class="card">
+
+  <h2>🎧 Criar voz</h2>
+
+  <p>Grave uma amostra de voz autorizada:</p>
+
+  <button id="record">🎙️ Começar gravação</button>
+
+  <p id="status" class="status">Aguardando...</p>
+
+  <audio id="audio" controls hidden></audio>
+
+</div>
+
+<div class="card">
+
+  <h2>📁 Enviar áudio</h2>
+
+  <input type="file" id="file" accept="audio/*">
+
+</div>
+
+<div class="card">
+
+  <h2>✍️ Transformar texto em voz</h2>
+
+  <textarea id="text" placeholder="Digite o texto que deseja ouvir..."></textarea>
+
+  <button id="speak">🔊 Gerar áudio</button>
+
+  <button id="stop">⏹ Parar áudio</button>
+
+</div>
+
+<script>
+
+let recorder;
+
+let chunks = [];
+
+let recording = false;
+
+const record = document.getElementById("record");
+
+const status = document.getElementById("status");
+
+const audio = document.getElementById("audio");
+
+record.onclick = async () => {
+
+  if (!recording) {
+
+    try {
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+
+        audio: true
+
+      });
+
+      recorder = new MediaRecorder(stream);
+
+      chunks = [];
+
+      recorder.ondataavailable = e => chunks.push(e.data);
+
+      recorder.onstop = () => {
+
+        const blob = new Blob(chunks, {
+
+          type: recorder.mimeType
+
+        });
+
+        audio.src = URL.createObjectURL(blob);
+
+        audio.hidden = false;
+
+        stream.getTracks().forEach(track => track.stop());
+
+      };
+
+      recorder.start();
+
+      recording = true;
+
+      record.textContent = "⏹ Finalizar gravação";
+
+      status.textContent = "Gravando...";
+
+    } catch (error) {
+
+      status.textContent = "Não foi possível acessar o microfone.";
+
+    }
+
+  } else {
+
+    recorder.stop();
+
+    recording = false;
+
+    record.textContent = "🎙️ Começar gravação";
+
+    status.textContent = "Gravação concluída!";
+
+  }
+
+};
+
+document.getElementById("speak").onclick = () => {
+
+  const text = document.getElementById("text").value;
+
+  if (!text.trim()) {
+
+    alert("Digite um texto primeiro!");
+
+    return;
+
+  }
+
+  speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(text);
+
+  speech.lang = "pt-BR";
+
+  speech.rate = 1;
+
+  speechSynthesis.speak(speech);
+
+};
+
+document.getElementById("stop").onclick = () => {
+
+  speechSynthesis.cancel();
+
+};
+
+</script>
+
+</body>
+
+</html> 
